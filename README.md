@@ -41,7 +41,7 @@ The proof for that is quite simple, and done by contradiction:
 4. Conclusion: $Alg$ cannot exist, and the **Halting Problem is undecidable**.
 
 The cool thing about the **Halting Problem** is that it can be used as an anchor to prove other problems are undecidable.  
-If we can show that solving some computational problem solves the Halting Problem, then that computational problem, by extension, is also undecidable.
+If we can show that solving some computational problem solves the Halting Problem, then that computational problem, by extension, is also undecidable. We call that technique **reduction** and it's used very commonly in theoretical computer science.
 
 ## Defining vulnerability classes with Turing Machines
 Now that we understand what Turing Machines are - we can define several classes of vulnerabilities, by extending the definition of our Turing Machine.  
@@ -65,5 +65,15 @@ Thus, we can define the following vulnerability classes:
 5. When $write\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we have an **use-after-free vulnerability**.
 6. When $add\(x, y\)$ occurs, if `Overflow` is set then we have an **integer overflow vulnerability**.
 7. When $sub\(x, y\)$ occurs, if `Underflow` is set then we have an **integer underflow vulnerability**.
+8. If the Turing Machine never halts, we define it as a **denial-of-service vulnerability**.
 
 Of course, that model could be further extended with more fancy ALU operations, but the idea would be the same.
+
+## Vulnerability discovery is undecidable
+We can perform a **reduction** from any of the different vulnerability classes we've defined to the **Halting Problem**, with ease:
+1. Given a **Turing Machine** $M$, we will construct a **Vulnerability Turing Machine** $Q$.
+2. Machine $Q$ simulated $M$ on the computational **tape** only, emitting no special **meta-instructions**.
+3. If $M$ halts then we produce exactly one violation (e.g. a **double free vulnerability**).
+4. Otherwise, we exit normally (this step actually never really happens since $M$ is simulated "all the way" and gets $Q$ stuck, but note there are no any vulnerabilities in any kind during this simulation).
+
+Now it should be easy to see that if we have an algorithm $Alg$ that gets a **Vulnerability Turing Machine** $Q$ and indicates whether it has any vulnerabilities, it'd be able to solve the **Halting Problem** as well - if we have a vulnerability then the original $M$ must have halted, otherwise we know that the original $M$ never halts.
