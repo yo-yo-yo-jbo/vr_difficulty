@@ -22,7 +22,7 @@ One other important aspect is that all programs can be represented by some natur
 
 Note: throughout this blogpost I will be using the terms "Turing Machine", "Program" and "Algorithm" interchangably, with the understanding that all of those models are equivalent.
 
-## Background - the Halting Problem and Rice's theorem
+## Background - the Halting Problem
 People who just started to code might think that coding is very powerful, in a sense that it can calculate every concievable function, given enough time and resources (remember that we have an infinitely long **tape**!).  
 That is false - for those of you who are familiar with the concept of [Mathematical Cardinality](https://en.wikipedia.org/wiki/Cardinality) it'd be easy - the set of possible Turing Machines is of $\aleph_0$, but the set of functions from $\mathbb{N}$ to $\mathbb{N}$ is $2^{\aleph_0}$, so "most" functions are not computable.  
 However, even if you are not familiar with those concepts, there is a famous problem that was proven to be **undecidable** - the **Halting Problem**.  
@@ -39,3 +39,31 @@ The proof for that is quite simple, and done by contradiction:
   1. If it halts then $Alg\(Q\)$ must have returned `false`, so we have a contradiction between what really happened and the result of $Alg$.
   2. If it doesn't halt then $Alg\(Q\)$ must have returned `true`, and again we have a contradiction.
 4. Conclusion: $Alg$ cannot exist, and the **Halting Problem is undecidable**.
+
+The cool thing about the **Halting Problem** is that it can be used as an anchor to prove other problems are undecidable.  
+If we can show that solving some computational problem solves the Halting Problem, then that computational problem, by extension, is also undecidable.
+
+## Defining vulnerability classes with Turing Machines
+Now that we understand what Turing Machines are - we can define several classes of vulnerabilities, by extending the definition of our Turing Machine.  
+Very simply, we can say that a **Vulnerability Turing Machine** (a **VTM**) is defined just like a normal Turing Machine, but with the following changes:
+1. We define the **word length** of our **symbols** as the number of bits it takes to represent our **symbols**.
+2. Every **cell** in our **tape** can now be marked as either `Unallocated`, `Free` or `Used`. Iniitally, all **cells** that have inputs are `Used`, and all the **cells** to the right of the input are `Unallocated`.
+3. We introduce an **arithematic register** with both **overflow flag** and an **underflow flag**. Both are initially not set.
+4. We extend the **transition table** by allowing each transition to emit a special **meta-instructions**:
+  1. $alloc\(i\)$ - marks **cell** with index $i$ as `Used`.
+  2. $free\(i\)$ - marks **cell** with index $i$ as `Free`.
+  3. $read\(i\)$ - marks that **cell** with index $i$ was meant to be read by our **head**.
+  4. $write\(i\)$ - marks that **cell** with index $i$ was meant to be written by our **head**.
+  5. $add\(x, y\)$ - declares the intension of adding **symbol** $x$ and $y$ - if $x+y$ is greater than the **word length** then we mark an `overflow` in our **arithematic register**.
+  6. $sub\(x, y\)$ - declares the intension of adding **symbol** $x$ and $y$ - if $x-y$ is less than zero then we mark an `underflow` in our **arithematic register**.
+
+Thus, we can define the following vulnerability classes:
+1. When $free\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we say we have a **double free vulnerability**.
+2. When $read\(i\)$ occurs, if the state of **cell* indexed $i$ is `Unallocated` then we have an **out-of-bounds read vulnerability**.
+3. When $write\(i\)$ occurs, if the state of **cell* indexed $i$ is `Unallocated` then we have an **out-of-bounds write vulnerability**.
+4. When $read\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we have an **use-after-free vulnerability**.
+5. When $write\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we have an **use-after-free vulnerability**.
+6. When $add\(x, y\)$ occurs, if `Overflow` is set then we have an **integer overflow vulnerability**.
+7. When $sub\(x, y\)$ occurs, if `Underflow` is set then we have an **integer underflow vulnerability**.
+
+Of course, that model could be further extended with more fancy ALU operations, but the idea would be the same.
