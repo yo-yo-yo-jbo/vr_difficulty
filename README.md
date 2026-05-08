@@ -77,3 +77,6 @@ We can perform a **reduction** from any of the different vulnerability classes w
 4. Otherwise, we exit normally (this step actually never really happens since $M$ is simulated "all the way" and gets $Q$ stuck, but note there are no any vulnerabilities in any kind during this simulation).
 
 Now it should be easy to see that if we have an algorithm $Alg$ that gets a **Vulnerability Turing Machine** $Q$ and indicates whether it has any vulnerabilities, it'd be able to solve the **Halting Problem** as well - if we have a vulnerability then the original $M$ must have halted, otherwise we know that the original $M$ never halts.
+
+Note this is a special case of a larger theorem called [Rice's theorem](https://en.wikipedia.org/wiki/Rice%27s_theorem), which specifies that any problem that gets Turing Machines as inputs which indicates a non-trivial property of those machines - is undecidable, where we define "trivial" as "all machines have that property" or "no machine has that property". It uses a very similar technique for proof.  
+Since I defined my own new class of Turing Machines, Rice's theorem doesn't immediately work for them, but in essence it'd be the same proof altogether.
