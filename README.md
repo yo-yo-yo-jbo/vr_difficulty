@@ -2,7 +2,10 @@
 With the recent news of folks finding vulnerabilities [left](https://en.wikipedia.org/wiki/Copy_Fail) and [right](https://chromereleases.googleblog.com/2026/05/stable-channel-update-for-desktop.html) using LLMs, some folks hope that we'd be able to find every single one vulnerability.  
 Today, I hope to shatter that idea. This post will be slightly more mathematical than usual, but it doesn't require much background.
 
-## Background - on programs and Turing Machines
+## Vulnerabilities and computability
+In this section we will discuss the computability aspect of vulnerability discovery.
+
+### Background - on programs and Turing Machines
 In the real world, we use programming languages to express ideas. Those, in turn, eventually run code that runs on your CPU (via compilation, interpretation etc.) - each programming language might express similar ideas but run different instructions.  
 Moreover, there are different CPUs and instruction sets, so comparing all different languages and architectures is quite difficult - especially when we want to discuss types of vulnerabilities and runtimes.  
 The frmaework used in universities is called a **Turing Machine**, and it's a computation model that represents any "reasonable" programmable computer.
@@ -22,7 +25,7 @@ One other important aspect is that all programs can be represented by some natur
 
 Note: throughout this blogpost I will be using the terms "Turing Machine", "Program" and "Algorithm" interchangably, with the understanding that all of those models are equivalent.
 
-## Background - the Halting Problem
+### Background - the Halting Problem
 People who just started to code might think that coding is very powerful, in a sense that it can calculate every concievable function, given enough time and resources (remember that we have an infinitely long **tape**!).  
 That is false - for those of you who are familiar with the concept of [Mathematical Cardinality](https://en.wikipedia.org/wiki/Cardinality) it'd be easy - the set of possible Turing Machines is of $\aleph_0$, but the set of functions from $\mathbb{N}$ to $\mathbb{N}$ is $2^{\aleph_0}$, so "most" functions are not computable.  
 However, even if you are not familiar with those concepts, there is a famous problem that was proven to be **undecidable** - the **Halting Problem**.  
@@ -43,7 +46,7 @@ The proof for that is quite simple, and done by contradiction:
 The cool thing about the **Halting Problem** is that it can be used as an anchor to prove other problems are undecidable.  
 If we can show that solving some computational problem solves the Halting Problem, then that computational problem, by extension, is also undecidable. We call that technique **reduction** and it's used very commonly in theoretical computer science.
 
-## Defining vulnerability classes with Turing Machines
+### Defining vulnerability classes with Turing Machines
 Now that we understand what Turing Machines are - we can define several classes of vulnerabilities, by extending the definition of our Turing Machine.  
 Very simply, we can say that a **Vulnerability Turing Machine** (a **VTM**) is defined just like a normal Turing Machine, but with the following changes:
 1. We define the **word length** of our **symbols** as the number of bits it takes to represent our **symbols**.
@@ -69,7 +72,7 @@ Thus, we can define the following vulnerability classes:
 
 Of course, that model could be further extended with more fancy ALU operations, but the idea would be the same.
 
-## Vulnerability discovery is undecidable
+### Vulnerability discovery is undecidable
 We can perform a **reduction** from any of the different vulnerability classes we've defined to the **Halting Problem**, with ease:
 1. Given a **Turing Machine** $M$, we will construct a **Vulnerability Turing Machine** $Q$.
 2. Machine $Q$ simulated $M$ on the computational **tape** only, emitting no special **meta-instructions**.
@@ -80,3 +83,12 @@ Now it should be easy to see that if we have an algorithm $Alg$ that gets a **Vu
 
 Note this is a special case of a larger theorem called [Rice's theorem](https://en.wikipedia.org/wiki/Rice%27s_theorem), which specifies that any problem that gets Turing Machines as inputs which indicates a non-trivial property of those machines - is undecidable, where we define "trivial" as "all machines have that property" or "no machine has that property". It uses a very similar technique for proof.  
 Since I defined my own new class of Turing Machines, Rice's theorem doesn't immediately work for them, but in essence it'd be the same proof altogether.
+
+## Vulnerabilities and complexity
+One thing computer scientists like to do is look at subset of problems - in our case, we will examine "efficient" Turing Machines and see how vulnerability discovery fares against them.
+
+### Background - complexity classes
+The topic of time complexity analysis is both deep and broad, but in essence, we can measure the time it takes for a Turing Machine to complete a certain task (assuming the Turing Machine halts!) by simply counting how many steps it takes to get to a final state.  
+The measurement traditionally used for that is to see how much time it takes for a Turing Machine to solve the problem, as the input of the problem grows.  
+For example, [binary search](https://en.wikipedia.org/wiki/Binary_search) is a well-known problem in which a program gets a sorted array and finds an element in that array (or declaring the element does not exist).  
+As the size of the input array grows **linearly**, the time it takes for the program grows **logarithmically** - if the input has $n$ elements, the time it takes would be $c_1\log_{2}\(n\) + c_2$, where those $c_1$ and $c_2$ constants are independent of $n$. As $n$ grows large, those constants will become less significant, and thus we mark the time complexity as $O\(\log_{2}\(n\)\)$
