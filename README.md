@@ -98,7 +98,12 @@ An important thing computer scientists like to do is examine "efficient" Turing 
 The term "efficient" is quite vague, and one common definition is that the time complexity is a **polynomial** (or better).  
 For example, a time complexity of $3n^4 + 5n + 7$ is really $O\(n^4\)$, which is a polynomial (and thus considered "efficient"), while $O\(2^n\)$ is not a polynomial (in fact, it's called **exponential**) is thus not considered efficient.  
 When we talk about problems and efficiency, we define two important classes of problems:
-- **P** - these are the set of problems with a known Turing Machine that can **find** an efficient solution (in polynomial time).
-- **NP** - these are the set of problems with known Turing Machines that can easily **check** if a solution is valid or not, to a certain problem, efficiently (in polynomial time).  
+- $P$ - these are the set of problems with a known Turing Machine that can **find** an efficient solution (in polynomial time).
+- $NP$ - these are the set of problems with known Turing Machines that can easily **verify** if a solution is valid or not, to a certain problem, efficiently (in polynomial time).  
 An example of that could be factoring large numbers - if we are given a number and a potential divisor, it's quite easy to check if that's a valid solution (performing that division is linear in time), but it's currently unknown whether we could find a divisor for a large number efficiently (note that would break [RSA](https://en.wikipedia.org/wiki/RSA_cryptosystem), for example).
 There is a well-known problem called [P versus NP](https://en.wikipedia.org/wiki/P_versus_NP_problem) which asks whether those two classes are the same - currently it's an open mathematical problem (and I expect it to stay that way for a very long time). Most computer scientists assume that $P \neq NP$.
+
+### Background - NP-completeness
+An important subset of problems under $NP$ is called [NP-complete](https://en.wikipedia.org/wiki/NP-completeness) or $NPC$ for short.  
+Those problems are problems in $NP$ but also proven to be "the hardest NP problems", in a sense that solving one of them can be used to solve any NP problem (without losing the efficiency aspect!), by simulating the desired NP problem.  
+One such problem is the [Boolean_satisfiability_problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) (commonly referred to as $SAT$), which asks whether a certain formula of boolean variables can be satisfied by assigning `false` or `true` to those variables.
