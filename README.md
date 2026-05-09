@@ -117,3 +117,35 @@ Given a Boolean formula $\varphi$ with variables $x_1, x_2, ... x_n$, we can bui
 
 Note that this machine runs in $O\(\varphi\)$ time complexity on every input, so it's polynomial time.  
 Also note if $\varphi\$ is in $SAT$ and $a$ is the assignment that satisfies it, then the machine reaches step 2 when given the input $a$ and causes a violation. Conversely, if the machine has a violation, then there exists some input that causes the violation - that input, when interpreted as an assignment to $SAT$, satisfies it.
+
+## Implications for practical systems
+
+### Static analyzers
+[Static analyzers](https://en.wikipedia.org/wiki/Static_program_analysis) reason about all possible executions without running the program. Since detecting any non-trivial vulnerability property is undecidable, no static analyzer can be simultaneously sound (no false negatives), complete (no false positives), and terminating on all
+inputs.
+
+### Fuzzers
+[Fuzzers](https://en.wikipedia.org/wiki/Fuzzing) generate concrete inputs and observe program behavior. Each execution confirms or refutes the presence of a violation on one input, but says nothing about other inputs.  
+The undecidability of vulnerability discovery implies that a fuzzer can confirm a bug (by finding it) but can never rule one out.  
+Coverage-guided fuzzers improve efficiency by prioritizing novel paths but face path explosion: the number of distinct execution paths grows without bound as a function of program size. Fuzzing therefore operates as a probabilistic sampler of the execution space, not as a decision procedure.
+
+### Symbolic execution
+[Symbolic execution](https://en.wikipedia.org/wiki/Symbolic_execution) encodes program paths as logical formulas and uses constraint solvers to find bug-triggering inputs.  
+This is more systematic than fuzzing - it can in principle explore all paths - but suffers from path explosion for exactly the same reason.  
+Bounding exploration by path depth, loop unrolling count, or solver timeout corresponds to decidable problems, but NP-complete ones, and thus, hypothesized to be difficult from a time complexity perspective.
+
+### Runtime instrumentation
+Tools such as [AddressSanitizer](https://github.com/google/sanitizers/wiki/addresssanitizer) instrument programs to detect violations dynamically on executed paths.  
+This corresponds to running the **Vulnerability Turing Machine** simulation on a specific input: given $x$, it is always possible to detect whether the machine exhibits a violation on $x$ (by simulating).  
+Run-time tools correctly detect violations when they occur on the tested input, but cannot certify absence across all inputs.
+
+### LLMs
+[LLMs](https://en.wikipedia.org/wiki/Large_language_model) might utilize all of the above techniques, they are excellent at finding vulnerabilities at-scale by pattern-matching, but suffer from the same problems that we've shown.
+
+## Summary
+In this blogpost, I tried to share some analysis on why vulnerability research it truly a difficult problem, even in a toy-model such as a Turing Machine.  
+The recent explosion in vulnerability discovery and exploitation via LLMs is mostly an engineering breakthrough (which should not be underestimated!) but does not yield new technical abilities - in my view, it mostly commoditizes the framework that has been used until this point by experts and ad-hoc (e.g. fuzzing harnesses).
+
+Stay tuned!
+
+Jonathan Bar Or
