@@ -87,8 +87,18 @@ Since I defined my own new class of Turing Machines, Rice's theorem doesn't imme
 ## Vulnerabilities and complexity
 One thing computer scientists like to do is look at subset of problems - in our case, we will examine "efficient" Turing Machines and see how vulnerability discovery fares against them.
 
-### Background - complexity classes
+### Background - time complexity
 The topic of time complexity analysis is both deep and broad, but in essence, we can measure the time it takes for a Turing Machine to complete a certain task (assuming the Turing Machine halts!) by simply counting how many steps it takes to get to a final state.  
 The measurement traditionally used for that is to see how much time it takes for a Turing Machine to solve the problem, as the input of the problem grows.  
 For example, [binary search](https://en.wikipedia.org/wiki/Binary_search) is a well-known problem in which a program gets a sorted array and finds an element in that array (or declaring the element does not exist).  
-As the size of the input array grows **linearly**, the time it takes for the program grows **logarithmically** - if the input has $n$ elements, the time it takes would be $c_1\log_{2}\(n\) + c_2$, where those $c_1$ and $c_2$ constants are independent of $n$. As $n$ grows large, those constants will become less significant, and thus we mark the time complexity as $O\(\log_{2}\(n\)\)$
+As the size of the input array grows **linearly**, the time it takes for the program grows **logarithmically** - if the input has $n$ elements, the time it takes would be $c_1\log_{2}\(n\) + c_2$, where those $c_1$ and $c_2$ constants are independent of $n$. As $n$ grows large, those constants will become less significant, and thus we mark the time complexity as $O\(\log_{2}\(n\)\)$.
+
+### Background - P and NP
+An important thing computer scientists like to do is examine "efficient" Turing Machines, or more precisely - examine **problems** for which an "efficient" Turing machine exists.  
+The term "efficient" is quite vague, and one common definition is that the time complexity is a **polynomial** (or better).  
+For example, a time complexity of $3n^4 + 5n + 7$ is really $O\(n^4\)$, which is a polynomial (and thus considered "efficient"), while $O\(2^n\)$ is not a polynomial (in fact, it's called **exponential**) is thus not considered efficient.  
+When we talk about problems and efficiency, we define two important classes of problems:
+- **P** - these are the set of problems with a known Turing Machine that can **find** an efficient solution (in polynomial time).
+- **NP** - these are the set of problems with known Turing Machines that can easily **check** if a solution is valid or not, to a certain problem, efficiently (in polynomial time).  
+An example of that could be factoring large numbers - if we are given a number and a potential divisor, it's quite easy to check if that's a valid solution (performing that division is linear in time), but it's currently unknown whether we could find a divisor for a large number efficiently (note that would break [RSA](https://en.wikipedia.org/wiki/RSA_cryptosystem), for example).
+There is a well-known problem called [P versus NP](https://en.wikipedia.org/wiki/P_versus_NP_problem) which asks whether those two classes are the same - currently it's an open mathematical problem (and I expect it to stay that way for a very long time). Most computer scientists assume that $P \neq NP$.
