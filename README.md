@@ -1,5 +1,5 @@
 # Why vulnerability discovery is mathematically difficult
-With the recent news of folks finding vulnerabilities [left](https://en.wikipedia.org/wiki/Copy_Fail) and [right](https://chromereleases.googleblog.com/2026/05/stable-channel-update-for-desktop.html) using LLMs, some folks hope that we'd be able to find every single one vulnerability.  
+With the recent news of folks finding vulnerabilities [left](https://en.wikipedia.org/wiki/Copy_Fail) and [right](https://chromereleases.googleblog.com/2026/05/stable-channel-update-for-desktop.html) using LLMs, some folks hope that we'd be able to find every single vulnerability.  
 Today, I hope to shatter that idea. This post will be slightly more mathematical than usual, but it doesn't require much background.
 
 ## Vulnerabilities and computability
@@ -8,22 +8,22 @@ In this section we will discuss the computability aspect of vulnerability discov
 ### Background - on programs and Turing Machines
 In the real world, we use programming languages to express ideas. Those, in turn, eventually run code that runs on your CPU (via compilation, interpretation etc.) - each programming language might express similar ideas but run different instructions.  
 Moreover, there are different CPUs and instruction sets, so comparing all different languages and architectures is quite difficult - especially when we want to discuss types of vulnerabilities and runtimes.  
-The frmaework used in universities is called a **Turing Machine**, and it's a computation model that represents any "reasonable" programmable computer.
+The framework used in universities is called a **Turing Machine**, and it's a computation model that represents any "reasonable" programmable computer.
 
 Without getting into the rigorous definition, that machine is defined as:
-1. A strip of **tape**, divided into **cells**, that streches from index 1 (leftmost) to infinity. That represents the working memory of the machine. We further define a set of **symbols** - think of those as the supported character set of the tape.
+1. A strip of **tape**, divided into **cells**, that stretches from index 1 (leftmost) to infinity. That represents the working memory of the machine. We further define a set of **symbols** - think of those as the supported character set of the tape.
 2. A **head** that can read or write symbols on the tape cells, and move the tape left or right (one cell at a time).
-3. A **state register**, which saves the current "state" of the machine. There are only a finite number of states for a Turing Machine. Initially, that state register has a special value - the "start stage", which is also a part of the Turing Machine definition.
+3. A **state register**, which saves the current "state" of the machine. There are only a finite number of states for a Turing Machine. Initially, that state register has a special value - the "start state", which is also a part of the Turing Machine definition.
 4. A finite **transition table** - which for every state and symbol currently pointed by the **head**, tells the machine what symbol to write to the current cell, what new state the **state register** should be assigned to, and where to move the head (left, right or stay where it is).
 5. A set of states that are considered to be **final states**. When the machine transitions to such a state (using the **transition table**) we say that the machine **halts**.
 
-Initially, the **tape** is given some **input** (from our set of allows **symbols**). When the machine halts, everything written on the tape to the left of the **head** is considered the machine's **output**.
+Initially, the **tape** is given some **input** (from our set of allowed **symbols**). When the machine halts, everything written on the tape to the left of the **head** is considered the machine's **output**.
 
 This simplistic model is equivalent to any programming language, and is a convenient model for proofs about runtime complexity (since it's programming-language structure independent and architecture independent).  
 One of the most important properties of Turing Machines is that they can run other Turing Machines that they get as inputs - that makes them **Turing Complete**.  
 One other important aspect is that all programs can be represented by some natural number - just like your day-to-day programs can be represented as text files on disk, and those are just bytes that could be represented by (commonly huge) numbers. We will refer to this property as the **encoding** of the Turing Machine.
 
-Note: throughout this blogpost I will be using the terms "Turing Machine", "Program" and "Algorithm" interchangably, with the understanding that all of those models are equivalent.
+Note: throughout this blogpost I will be using the terms "Turing Machine", "Program" and "Algorithm" interchangeably, with the understanding that all of those models are equivalent.
 
 ### Background - the Halting Problem
 People who just started to code might think that coding is very powerful, in a sense that it can calculate every concievable function, given enough time and resources (remember that we have an infinitely long **tape**!).  
@@ -50,22 +50,22 @@ If we can show that solving some computational problem solves the Halting Proble
 Now that we understand what Turing Machines are - we can define several classes of vulnerabilities, by extending the definition of our Turing Machine.  
 Very simply, we can say that a **Vulnerability Turing Machine** (a **VTM**) is defined just like a normal Turing Machine, but with the following changes:
 1. We define the **word length** of our **symbols** as the number of bits it takes to represent our **symbols**.
-2. Every **cell** in our **tape** can now be marked as either `Unallocated`, `Free` or `Used`. Iniitally, all **cells** that have inputs are `Used`, and all the **cells** to the right of the input are `Unallocated`.
-3. We introduce an **arithematic register** with both **overflow flag** and an **underflow flag**. Both are initially not set.
+2. Every **cell** in our **tape** can now be marked as either `Unallocated`, `Free` or `Used`. Initially, all **cells** that have inputs are `Used`, and all the **cells** to the right of the input are `Unallocated`.
+3. We introduce an **arithmetic register** with both **overflow flag** and an **underflow flag**. Both are initially not set.
 4. We extend the **transition table** by allowing each transition to emit a special **meta-instructions**:
   1. $alloc\(i\)$ - marks **cell** with index $i$ as `Used`.
   2. $free\(i\)$ - marks **cell** with index $i$ as `Free`.
   3. $read\(i\)$ - marks that **cell** with index $i$ was meant to be read by our **head**.
   4. $write\(i\)$ - marks that **cell** with index $i$ was meant to be written by our **head**.
-  5. $add\(x, y\)$ - declares the intension of adding **symbol** $x$ and $y$ - if $x+y$ is greater than the **word length** then we mark an `overflow` in our **arithematic register**.
-  6. $sub\(x, y\)$ - declares the intension of adding **symbol** $x$ and $y$ - if $x-y$ is less than zero then we mark an `underflow` in our **arithematic register**.
+  5. $add\(x, y\)$ - declares the intention of adding **symbol** $x$ and $y$ - if $x+y$ is greater than $2^{w}-1$ (where $w$ is the **word length**) then we mark an `overflow` in our **arithmetic register**.
+  6. $sub\(x, y\)$ - declares the intention of subtracting **symbol** $x$ and $y$ - if $x-y$ is less than zero then we mark an `underflow` in our **arithmetic register**.
 
 Thus, we can define the following vulnerability classes:
-1. When $free\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we say we have a **double free vulnerability**.
-2. When $read\(i\)$ occurs, if the state of **cell* indexed $i$ is `Unallocated` then we have an **out-of-bounds read vulnerability**.
-3. When $write\(i\)$ occurs, if the state of **cell* indexed $i$ is `Unallocated` then we have an **out-of-bounds write vulnerability**.
-4. When $read\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we have an **use-after-free vulnerability**.
-5. When $write\(i\)$ occurs, if the state of **cell* indexed $i$ is `Free` then we have an **use-after-free vulnerability**.
+1. When $free\(i\)$ occurs, if the state of **cell** indexed $i$ is `Free` then we say we have a **double free vulnerability**.
+2. When $read\(i\)$ occurs, if the state of **cell** indexed $i$ is `Unallocated` then we have an **out-of-bounds read vulnerability**.
+3. When $write\(i\)$ occurs, if the state of **cell** indexed $i$ is `Unallocated` then we have an **out-of-bounds write vulnerability**.
+4. When $read\(i\)$ occurs, if the state of **cell** indexed $i$ is `Free` then we have a **use-after-free read vulnerability**.
+5. When $write\(i\)$ occurs, if the state of **cell** indexed $i$ is `Free` then we have a **use-after-free write vulnerability**.
 6. When $add\(x, y\)$ occurs, if `Overflow` is set then we have an **integer overflow vulnerability**.
 7. When $sub\(x, y\)$ occurs, if `Underflow` is set then we have an **integer underflow vulnerability**.
 8. If the Turing Machine never halts, we define it as a **denial-of-service vulnerability**.
@@ -77,7 +77,7 @@ We can perform a **reduction** from any of the different vulnerability classes w
 1. Given a **Turing Machine** $M$, we will construct a **Vulnerability Turing Machine** $Q$.
 2. Machine $Q$ simulated $M$ on the computational **tape** only, emitting no special **meta-instructions**.
 3. If $M$ halts then we produce exactly one violation (e.g. a **double free vulnerability**).
-4. Otherwise, we exit normally (this step actually never really happens since $M$ is simulated "all the way" and gets $Q$ stuck, but note there are no any vulnerabilities in any kind during this simulation).
+4. Otherwise, we exit normally (this step actually never really happens since $M$ is simulated "all the way" and gets $Q$ stuck, but note there are no vulnerabilities of any kind during this simulation).
 
 Now it should be easy to see that if we have an algorithm $Alg$ that gets a **Vulnerability Turing Machine** $Q$ and indicates whether it has any vulnerabilities, it'd be able to solve the **Halting Problem** as well - if we have a vulnerability then the original $M$ must have halted, otherwise we know that the original $M$ never halts.
 
@@ -109,7 +109,7 @@ Those problems are problems in $NP$ but also proven to be "the hardest NP proble
 One such problem is the [Boolean_satisfiability_problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) (commonly referred to as $SAT$), which asks whether a certain formula of Boolean variables can be satisfied by assigning `false` or `true` to those variables.  
 
 ### Vulnerability discovery is NP-complete
-Interesingly, we can reduce any of our vulnerability discovery problems to $SAT$.  
+Interestingly, we can reduce $SAT$ to any of our vulnerability discovery problems.  
 Given a Boolean formula $\varphi$ with variables $x_1, x_2, ... x_n$, we can build a **Vulnerability Turing Machine** that gets input $x$ (of length $n$ symbols) and:
 1. Scans $\varphi$ clause by clause and computes $\varphi\(x\)$, emitting no **meta-instructions**.
 2. If $\varphi\(x\)$ is `true`, cause a vulnerability (e.g. `out-of-bounds`).
@@ -132,20 +132,32 @@ Coverage-guided fuzzers improve efficiency by prioritizing novel paths but face 
 ### Symbolic execution
 [Symbolic execution](https://en.wikipedia.org/wiki/Symbolic_execution) encodes program paths as logical formulas and uses constraint solvers to find bug-triggering inputs.  
 This is more systematic than fuzzing - it can in principle explore all paths - but suffers from path explosion for exactly the same reason.  
-Bounding exploration by path depth, loop unrolling count, or solver timeout corresponds to decidable problems, but NP-complete ones, and thus, hypothesized to be difficult from a time complexity perspective.
+Bounding exploration (by path depth, loop unrolling count, or solver timeout) makes the problem decidable but NP-complete, and thus hypothesized to be difficult from a time complexity perspective.
 
 ### Runtime instrumentation
 Tools such as [AddressSanitizer](https://github.com/google/sanitizers/wiki/addresssanitizer) instrument programs to detect violations dynamically on executed paths.  
 This corresponds to running the **Vulnerability Turing Machine** simulation on a specific input: given $x$, it is always possible to detect whether the machine exhibits a violation on $x$ (by simulating).  
 Run-time tools correctly detect violations when they occur on the tested input, but cannot certify absence across all inputs.
 
-### LLMs
-[LLMs](https://en.wikipedia.org/wiki/Large_language_model) might utilize all of the above techniques, they are excellent at finding vulnerabilities at-scale by pattern-matching, but suffer from the same problems that we've shown.
+## Some thoughts about LLMs
+[LLMs](https://en.wikipedia.org/wiki/Large_language_model) are not a new computational model - they orchestrate the techniques we described above (generating fuzzing harnesses, driving symbolic execution tools, triaging static-analyzer output, reading sanitizer traces) and combine them with a learned prior over what vulnerable code *looks like*.
+
+That prior is genuinely useful. The vast majority of real-world vulnerabilities are not novel - they are yet another off-by-one, yet another use-after-free on a familiar lifecycle pattern, yet another [TOCTOU](https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use). LLMs are very good at recognizing the *shape* of a known vulnerability class in unfamiliar code - a skill that previously required an experienced auditor - and this is a real capability that should not be dismissed.
+
+However, the results we've shown still apply:
+1. An LLM is itself a Turing-equivalent computation, so it cannot decide a problem we've already proven undecidable. There will always be programs for which it cannot tell us "vulnerable or not" with certainty.
+2. On bounded programs, the NP-hardness result means an LLM searching for triggering inputs is approximating a search over an exponential space, not solving it. High confidence is not the same as coverage.
+3. Pattern-matching has a recall ceiling: an LLM finds bugs that resemble its training distribution. Novel logic bugs, specification-mismatch bugs, and bugs in unusual protocols or codebases remain systematic blind spots.
+
+What actually changes with LLMs is throughput, cost, and accessibility. The time-to-find for known-shape bugs is collapsing for both attackers and defenders, but the residual population of undiscovered bugs - the deep, semantic, novel ones - has roughly the same shape as before.
+
+A related caveat: benchmarks based on curated CVEs or CTF challenges measure how well an LLM recognizes known shapes, not how close it is to solving vulnerability discovery in general. A high score there is evidence of pattern-matching capacity, not of completeness.
 
 ## Summary
-In this blogpost, I tried to share some analysis on why vulnerability research it truly a difficult problem, even in a toy-model such as a Turing Machine.  
+In this blogpost, I tried to share some analysis on why vulnerability research is truly a difficult problem, even in a toy-model such as a Turing Machine.  
 The recent explosion in vulnerability discovery and exploitation via LLMs is mostly an engineering breakthrough (which should not be underestimated!) but does not yield new technical abilities - in my view, it mostly commoditizes the framework that has been used until this point by experts and ad-hoc (e.g. fuzzing harnesses).
 
 Stay tuned!
 
 Jonathan Bar Or
+
