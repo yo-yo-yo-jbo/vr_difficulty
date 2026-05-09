@@ -106,4 +106,14 @@ There is a well-known problem called [P versus NP](https://en.wikipedia.org/wiki
 ### Background - NP-completeness
 An important subset of problems under $NP$ is called [NP-complete](https://en.wikipedia.org/wiki/NP-completeness) or $NPC$ for short.  
 Those problems are problems in $NP$ but also proven to be "the hardest NP problems", in a sense that solving one of them can be used to solve any NP problem (without losing the efficiency aspect!), by simulating the desired NP problem.  
-One such problem is the [Boolean_satisfiability_problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) (commonly referred to as $SAT$), which asks whether a certain formula of boolean variables can be satisfied by assigning `false` or `true` to those variables.
+One such problem is the [Boolean_satisfiability_problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) (commonly referred to as $SAT$), which asks whether a certain formula of Boolean variables can be satisfied by assigning `false` or `true` to those variables.  
+
+### Vulnerability discovery is NP-complete
+Interesingly, we can reduce any of our vulnerability discovery problems to $SAT$.  
+Given a Boolean formula $\varphi$ with variables $x_1, x_2, ... x_n$, we can build a **Vulnerability Turing Machine** that gets input $x$ (of length $n$ symbols) and:
+1. Scans $\varphi$ clause by clause and computes $\varphi\(x\)$, emitting no **meta-instructions**.
+2. If $\varphi\(x\)$ is `true`, cause a vulnerability (e.g. `out-of-bounds`).
+3. Otherwise, halt without a violation.
+
+Note that this machine runs in $O\(\varphi\)$ time complexity on every input, so it's polynomial time.  
+Also note if $\varphi\$ is in $SAT$ and $a$ is the assignment that satisfies it, then the machine reaches step 2 when given the input $a$ and causes a violation. Conversely, if the machine has a violation, then there exists some input that causes the violation - that input, when interpreted as an assignment to $SAT$, satisfies it.
