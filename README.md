@@ -159,5 +159,5 @@ The recent explosion in vulnerability discovery and exploitation via LLMs is mos
 
 Stay tuned!
 
-Jonathan Bar Or
+Jonathan Bar Or (https://jonathanbaror.com)
 
